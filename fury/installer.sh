@@ -2,7 +2,7 @@
 #
 # Command: wget -q "--no-check-certificate" https://raw.githubusercontent.com/islam-2412/IPKS/refs/heads/main/fury/installer.sh -O - | /bin/sh #
 echo "------------------------------------------------------------------------"
-echo "              You are going to install Fury-FHD                       "
+echo "                     Installing Fury-FHD Skin                           "
 echo "------------------------------------------------------------------------"
 echo "removing the previous version of Fury-FHD... "
 sleep 2;
@@ -11,7 +11,7 @@ if [ -d /usr/share/enigma2/Fury-FHD ] ; then
     rm -rf /usr/share/enigma2/Fury-FHD > /dev/null 2>&1
     echo 'Package removed.'
 else
-    echo "You do not have previous version of Fury-FHD"
+    echo "There are no previous versions of Fury-FHD"
 fi
 echo ""
 # Install curl if not already installed
