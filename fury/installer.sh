@@ -49,8 +49,8 @@ fi
 echo "Done"
 #
 echo "------------------------------------------------------------------------"
-echo "                            CONGRATULATIONS                             "
-echo "                   Fury-FHD Installed Successfully                    "
+echo "                              Abou Yassin                               "
+echo "                   Fury-FHD Installed Successfully                      "
 echo "------------------------------------------------------------------------"
 echo "   "
 exit 0
