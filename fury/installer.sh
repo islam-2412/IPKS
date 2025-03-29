@@ -22,7 +22,7 @@ sleep 2
 #
 cd /tmp
 echo "Downloading Fury-FHD skin package..."
-curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/Furyatv.ipk
+curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/fury.ipk
 if [ $? -ne 0 ]; then
     echo "Error downloading Fury-FHD"
     exit 1
