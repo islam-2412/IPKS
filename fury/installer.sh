@@ -82,18 +82,17 @@ elif [ -f /proc/stb/info/vumodel ]; then
 else
     DEVICE_NAME="Unknown"
 fi
+print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
-# استخراج اسم الصورة
+# استخراج اسم الصورة الفعلي (تجاهل كلمة Welcome)
 if [ -f /etc/issue ]; then
-    IMAGE_NAME=$(head -n 1 /etc/issue | awk '{print $1}')
+    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | awk '{print $1}')
 else
     IMAGE_NAME="Unknown"
 fi
-
-print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 print_success "Detected Image: ${YELLOW}${IMAGE_NAME}${NC}"
 
-# التعرف على إصدار البايثون
+# التعرف على إصدار البايثون بنفس الطريقة الموثوقة
 PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
 
 if [ -z "$PYTHON_VERSION" ]; then
