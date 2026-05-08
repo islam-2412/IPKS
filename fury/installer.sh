@@ -48,8 +48,8 @@ install_extension() {
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
-echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions  ✨    ${NC}"
+echo -e "${MAGENTA}                  Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
