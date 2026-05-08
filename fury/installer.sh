@@ -3,7 +3,7 @@
 # Command: wget -q "--no-check-certificate" https://raw.githubusercontent.com/islam-2412/IPKS/refs/heads/main/fury/installer.sh -O - | /bin/sh
 
 # ==============================================================================
-# تعريف الألوان
+# Define Colors
 # ==============================================================================
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -11,10 +11,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[1;34m'
 CYAN='\033[1;36m'
 MAGENTA='\033[1;35m'
-NC='\033[0m' # بدون لون
+NC='\033[0m' # No Color
 
 # ==============================================================================
-# دوال الطباعة الجمالية (Functions)
+# Formatting Functions
 # ==============================================================================
 print_info() { echo -e "${BLUE}[ INFO ]${NC} $1"; }
 print_success() { echo -e "${GREEN}[ SUCCESS ]${NC} $1"; }
@@ -22,7 +22,7 @@ print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
 print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
 print_divider() { echo -e "${CYAN}========================================================================${NC}"; }
 
-# دالة لتثبيت الإضافات
+# Function to install extensions
 install_extension() {
     local ext_name=$1
     local ext_url=$2
@@ -44,7 +44,7 @@ install_extension() {
 }
 
 # ==============================================================================
-# بداية التثبيت
+# Start Installation
 # ==============================================================================
 clear
 print_divider
@@ -53,7 +53,7 @@ echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)      
 print_divider
 echo ""
 
-# 1. تنظيف الإصدارات القديمة من الإسكين
+# 1. Remove old versions of the skin
 print_info "Removing the previous version of Fury-FHD..."
 sleep 1
 if [ -d /usr/share/enigma2/Fury-FHD ] ; then
@@ -65,16 +65,16 @@ else
 fi
 echo ""
 
-# 2. التأكد من وجود curl
+# 2. Check for curl dependency
 print_info "Checking and installing curl if not already installed..."
 opkg install curl > /dev/null 2>&1
 print_success "Dependencies ready."
 echo ""
 
-# 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
+# 3. Detect System Information (Device, Image, Python version)
 print_info "Detecting System Information..."
 
-# استخراج اسم الجهاز الحقيقي (الأولوية لـ hwmodel لتخطي وهم dm8000)
+# Extract the real device name (Priority to hwmodel to bypass dm8000 fake string)
 if [ -f /proc/stb/info/hwmodel ]; then
     DEVICE_NAME=$(cat /proc/stb/info/hwmodel)
 elif [ -f /proc/stb/info/vumodel ]; then
@@ -87,22 +87,22 @@ else
     DEVICE_NAME="Unknown"
 fi
 
-# فخ أخير: لو لسه مصر إنه dm8000، هنسحب الاسم من الهوست نيم بتاع الجهاز
+# Final fallback: If it still returns dm8000, extract the name from the hostname
 if [ "$DEVICE_NAME" = "dm8000" ] && [ -f /etc/hostname ]; then
     DEVICE_NAME=$(cat /etc/hostname)
 fi
 
 print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
-# استخراج اسم الصورة الفعلي
+# Extract the actual image name
 if [ -f /etc/issue ]; then
     IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | awk '{print $1}')
 else
     IMAGE_NAME="Unknown"
 fi
-print_success "Detected Image: ${YELLOW}${IMAGE_NAME}${NC}"
+print_success "Detected Image: ${GREEN}${IMAGE_NAME}${NC}"
 
-# التعرف على إصدار البايثون
+# Detect Python version
 PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
 
 if [ -z "$PYTHON_VERSION" ]; then
@@ -118,7 +118,7 @@ echo ""
 
 cd /tmp || exit
 
-# 4. تحميل وتثبيت الإسكين الأساسي
+# 4. Download and install the main skin
 print_info "Downloading Fury-FHD skin package..."
 curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/fury.ipk
 
@@ -132,7 +132,7 @@ else
 fi
 echo ""
 
-# 5. تحميل وتثبيت الإضافات
+# 5. Download and install extensions
 if [ -n "$PYTHON_VERSION" ]; then
     install_extension "DataMonitor" "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/DataMonitor/datamonitor_py${PYTHON_VERSION}.ipk"
     install_extension "FuryDisk" "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/FuryDisk/furydisk_py${PYTHON_VERSION}.ipk"
@@ -140,7 +140,7 @@ if [ -n "$PYTHON_VERSION" ]; then
 fi
 
 # ==============================================================================
-# نهاية التثبيت
+# End Installation
 # ==============================================================================
 print_divider
 echo -e "${GREEN}             🎉 Fury-FHD & Extensions Installed/Updated Successfully! 🎉 ${NC}"
