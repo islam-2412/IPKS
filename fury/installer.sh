@@ -3,7 +3,7 @@
 # Command: wget -q "--no-check-certificate" https://raw.githubusercontent.com/islam-2412/IPKS/refs/heads/main/fury/installer.sh -O - | /bin/sh #
 
 echo "------------------------------------------------------------------------"
-echo "           Installing Fury-FHD Skin & Extensions (Smart Install)        "
+echo "           Installing Fury-FHD Skin & Extensions        "
 echo "------------------------------------------------------------------------"
 
 # 1. تنظيف الإصدارات القديمة من الإسكين
@@ -84,6 +84,23 @@ if [ -n "$PYTHON_VERSION" ]; then
         echo "Installing FuryDisk..."
         opkg install --force-overwrite /tmp/furydisk.ipk
         rm -f /tmp/furydisk.ipk
+    fi
+fi
+sleep 1
+echo ""
+
+# 7. تحميل وتثبيت AlFury بناءً على إصدار البايثون
+if [ -n "$PYTHON_VERSION" ]; then
+    echo "Downloading AlFury for Python ${PYTHON_VERSION}..."
+    curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/AlFury/alfury_py${PYTHON_VERSION}.ipk" -o /tmp/alfury.ipk
+    
+    if grep -q "Not Found" /tmp/alfury.ipk || [ ! -s /tmp/alfury.ipk ]; then
+        echo "⚠️ AlFury IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
+        rm -f /tmp/alfury.ipk
+    else
+        echo "Installing AlFury..."
+        opkg install --force-overwrite /tmp/alfury.ipk
+        rm -f /tmp/alfury.ipk
     fi
 fi
 sleep 1
