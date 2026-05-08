@@ -74,17 +74,21 @@ echo ""
 # 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
 print_info "Detecting System Information..."
 
-# استخراج اسم الجهاز
-if [ -f /proc/stb/info/model ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/model)
+# استخراج اسم الجهاز الحقيقي (دعم Octagon والأجهزة الحديثة)
+if [ -f /proc/stb/info/boxtype ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/boxtype)
+elif [ -f /proc/stb/info/hwmodel ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/hwmodel)
 elif [ -f /proc/stb/info/vumodel ]; then
     DEVICE_NAME=$(cat /proc/stb/info/vumodel)
+elif [ -f /proc/stb/info/model ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/model)
 else
     DEVICE_NAME="Unknown"
 fi
 print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
-# استخراج اسم الصورة الفعلي (تجاهل كلمة Welcome)
+# استخراج اسم الصورة الفعلي
 if [ -f /etc/issue ]; then
     IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | awk '{print $1}')
 else
@@ -92,7 +96,7 @@ else
 fi
 print_success "Detected Image: ${YELLOW}${IMAGE_NAME}${NC}"
 
-# التعرف على إصدار البايثون بنفس الطريقة الموثوقة
+# التعرف على إصدار البايثون
 PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
 
 if [ -z "$PYTHON_VERSION" ]; then
