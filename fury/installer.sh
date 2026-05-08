@@ -74,45 +74,49 @@ echo ""
 # 3. Detect System Information (Device, Image, Python version)
 print_info "Detecting System Information..."
 
-# Extract the real device name (Priority to hwmodel to bypass dm8000 fake string)
+# Extract the real device name (Cleaned from hidden characters)
 if [ -f /proc/stb/info/hwmodel ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/hwmodel)
+    DEVICE_NAME=$(cat /proc/stb/info/hwmodel | tr -d '\r\n')
 elif [ -f /proc/stb/info/vumodel ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/vumodel)
+    DEVICE_NAME=$(cat /proc/stb/info/vumodel | tr -d '\r\n')
 elif [ -f /proc/stb/info/boxtype ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/boxtype)
+    DEVICE_NAME=$(cat /proc/stb/info/boxtype | tr -d '\r\n')
 elif [ -f /proc/stb/info/model ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/model)
+    DEVICE_NAME=$(cat /proc/stb/info/model | tr -d '\r\n')
 else
     DEVICE_NAME="Unknown"
 fi
 
 # Final fallback: If it still returns dm8000, extract the name from the hostname
 if [ "$DEVICE_NAME" = "dm8000" ] && [ -f /etc/hostname ]; then
-    DEVICE_NAME=$(cat /etc/hostname)
+    DEVICE_NAME=$(cat /etc/hostname | tr -d '\r\n')
 fi
 
-print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
+# Print Device Name in Yellow
+echo -e "${GREEN}[ SUCCESS ]${NC} Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
-# Extract the actual image name
+# Extract the actual image name (Cleaned from hidden characters)
 if [ -f /etc/issue ]; then
-    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | awk '{print $1}')
+    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | tr -d '\r\n' | awk '{print $1}')
 else
     IMAGE_NAME="Unknown"
 fi
-print_success "Detected Image: ${GREEN}${IMAGE_NAME}${NC}"
 
-# Detect Python version
-PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
+# Print Image Name in Green
+echo -e "${GREEN}[ SUCCESS ]${NC} Detected Image: ${GREEN}${IMAGE_NAME}${NC}"
+
+# Detect Python version (Cleaned from hidden characters)
+PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null | tr -d '\r\n')
 
 if [ -z "$PYTHON_VERSION" ]; then
-    PYTHON_VERSION=$(python -c 'import sys; print(str(sys.version_info[0]) + "." + str(sys.version_info[1]))' 2>/dev/null)
+    PYTHON_VERSION=$(python -c 'import sys; print(str(sys.version_info[0]) + "." + str(sys.version_info[1]))' 2>/dev/null | tr -d '\r\n')
 fi
 
 if [ -z "$PYTHON_VERSION" ]; then
     print_warning "Python version could not be detected. Plugins might not install correctly."
 else
-    print_success "Detected Python Version: ${YELLOW}${PYTHON_VERSION}${NC}"
+    # Print Python Version in Yellow
+    echo -e "${GREEN}[ SUCCESS ]${NC} Detected Python Version: ${YELLOW}${PYTHON_VERSION}${NC}"
 fi
 echo ""
 
