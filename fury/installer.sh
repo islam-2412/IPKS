@@ -8,7 +8,7 @@
 RED='\033[1;31m'
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[1;34m'
+WHITE='\033[1;37m'
 CYAN='\033[1;36m'
 MAGENTA='\033[1;35m'
 NC='\033[0m' # No Color
@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # ==============================================================================
 # Formatting Functions
 # ==============================================================================
-print_info() { echo -e "${BLUE}[ INFO ]${NC} $1"; }
+print_info() { echo -e "${WHITE}[ INFO ]${NC} $1"; }
 print_success() { echo -e "${GREEN}[ SUCCESS ]${NC} $1"; }
 print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
 print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
@@ -49,8 +49,7 @@ install_extension() {
 clear
 print_divider
 echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
-
-echo -e "${YELLOW}                            Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${YELLOW}                              Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
@@ -148,7 +147,6 @@ fi
 # End Installation
 # ==============================================================================
 print_divider
-echo -e "${GREEN}             🎉 Fury-FHD & Extensions Installed/Updated Successfully! 🎉 ${NC}"
-echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
+echo -e "${GREEN}             ✅ Fury-FHD & Extensions Installed Successfully! ✅ ${NC}"
 print_divider
 exit 0
