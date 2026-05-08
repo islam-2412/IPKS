@@ -49,7 +49,8 @@ install_extension() {
 clear
 print_divider
 echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
-echo -e "${YELLOW}                Islam Salama (Abou Yassin)               ${NC}"
+
+echo -e "${MAGENTA}                       Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
@@ -74,22 +75,22 @@ echo ""
 # 3. Detect System Information (Device, Image, Python version)
 print_info "Detecting System Information..."
 
-# Extract the real device name (Cleaned from hidden characters)
+# Extract the real device name (Cleaned from hidden characters and Null Bytes)
 if [ -f /proc/stb/info/hwmodel ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/hwmodel | tr -d '\r\n')
+    DEVICE_NAME=$(tr -d '\0\r\n' < /proc/stb/info/hwmodel)
 elif [ -f /proc/stb/info/vumodel ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/vumodel | tr -d '\r\n')
+    DEVICE_NAME=$(tr -d '\0\r\n' < /proc/stb/info/vumodel)
 elif [ -f /proc/stb/info/boxtype ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/boxtype | tr -d '\r\n')
+    DEVICE_NAME=$(tr -d '\0\r\n' < /proc/stb/info/boxtype)
 elif [ -f /proc/stb/info/model ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/model | tr -d '\r\n')
+    DEVICE_NAME=$(tr -d '\0\r\n' < /proc/stb/info/model)
 else
     DEVICE_NAME="Unknown"
 fi
 
 # Final fallback: If it still returns dm8000, extract the name from the hostname
 if [ "$DEVICE_NAME" = "dm8000" ] && [ -f /etc/hostname ]; then
-    DEVICE_NAME=$(cat /etc/hostname | tr -d '\r\n')
+    DEVICE_NAME=$(tr -d '\0\r\n' < /etc/hostname)
 fi
 
 # Print Device Name in Yellow
@@ -97,7 +98,7 @@ echo -e "${GREEN}[ SUCCESS ]${NC} Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
 # Extract the actual image name (Cleaned from hidden characters)
 if [ -f /etc/issue ]; then
-    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | tr -d '\r\n' | awk '{print $1}')
+    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | tr -d '\0\r\n' | awk '{print $1}')
 else
     IMAGE_NAME="Unknown"
 fi
@@ -106,10 +107,10 @@ fi
 echo -e "${GREEN}[ SUCCESS ]${NC} Detected Image: ${GREEN}${IMAGE_NAME}${NC}"
 
 # Detect Python version (Cleaned from hidden characters)
-PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null | tr -d '\r\n')
+PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null | tr -d '\0\r\n')
 
 if [ -z "$PYTHON_VERSION" ]; then
-    PYTHON_VERSION=$(python -c 'import sys; print(str(sys.version_info[0]) + "." + str(sys.version_info[1]))' 2>/dev/null | tr -d '\r\n')
+    PYTHON_VERSION=$(python -c 'import sys; print(str(sys.version_info[0]) + "." + str(sys.version_info[1]))' 2>/dev/null | tr -d '\0\r\n')
 fi
 
 if [ -z "$PYTHON_VERSION" ]; then
