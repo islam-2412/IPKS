@@ -22,7 +22,7 @@ print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
 print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
 print_divider() { echo -e "${CYAN}========================================================================${NC}"; }
 
-# دالة لتثبيت الإضافات (تم إضافة --force-reinstall بناءً على تعديلك الأخير)
+# دالة لتثبيت الإضافات
 install_extension() {
     local ext_name=$1
     local ext_url=$2
@@ -48,8 +48,8 @@ install_extension() {
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions  ✨    ${NC}"
-echo -e "${MAGENTA}                  Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
+echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
@@ -71,8 +71,29 @@ opkg install curl > /dev/null 2>&1
 print_success "Dependencies ready."
 echo ""
 
-# 3. التعرف على إصدار البايثون في الصورة
-print_info "Detecting Python version..."
+# 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
+print_info "Detecting System Information..."
+
+# استخراج اسم الجهاز
+if [ -f /proc/stb/info/model ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/model)
+elif [ -f /proc/stb/info/vumodel ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/vumodel)
+else
+    DEVICE_NAME="Unknown"
+fi
+
+# استخراج اسم الصورة
+if [ -f /etc/issue ]; then
+    IMAGE_NAME=$(head -n 1 /etc/issue | awk '{print $1}')
+else
+    IMAGE_NAME="Unknown"
+fi
+
+print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
+print_success "Detected Image: ${YELLOW}${IMAGE_NAME}${NC}"
+
+# التعرف على إصدار البايثون
 PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
 
 if [ -z "$PYTHON_VERSION" ]; then
