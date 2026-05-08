@@ -88,18 +88,18 @@ fi
 sleep 1
 echo ""
 
-# 7. تحميل وتثبيت AlFury
+# 7. تحميل وتثبيت AIFury
 if [ -n "$PYTHON_VERSION" ]; then
-    echo "Downloading AlFury for Python ${PYTHON_VERSION}..."
-    curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/AlFury/alfury_py${PYTHON_VERSION}.ipk" -o /tmp/alfury.ipk
+    echo "Downloading AIFury for Python ${PYTHON_VERSION}..."
+    curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/AIFury/aifury_py${PYTHON_VERSION}.ipk" -o /tmp/aifury.ipk
     
-    if grep -q "Not Found" /tmp/alfury.ipk || [ ! -s /tmp/alfury.ipk ]; then
-        echo "⚠️ AlFury IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
-        rm -f /tmp/alfury.ipk
+    if grep -q "Not Found" /tmp/aifury.ipk || [ ! -s /tmp/aifury.ipk ]; then
+        echo "⚠️ AIFury IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
+        rm -f /tmp/aifury.ipk
     else
-        echo "Installing AlFury..."
-        opkg install --force-reinstall --force-overwrite /tmp/alfury.ipk
-        rm -f /tmp/alfury.ipk
+        echo "Installing AIFury..."
+        opkg install --force-reinstall --force-overwrite /tmp/aifury.ipk
+        rm -f /tmp/aifury.ipk
     fi
 fi
 sleep 1
