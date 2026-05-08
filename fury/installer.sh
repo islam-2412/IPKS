@@ -1,30 +1,78 @@
-#!/bin/bash
+#!/bin/sh
 #
-# Command: wget -q "--no-check-certificate" https://raw.githubusercontent.com/islam-2412/IPKS/refs/heads/main/fury/installer.sh -O - | /bin/sh #
+# Command: wget -q "--no-check-certificate" https://raw.githubusercontent.com/islam-2412/IPKS/refs/heads/main/fury/installer.sh -O - | /bin/sh
 
-echo "------------------------------------------------------------------------"
-echo "           Installing Fury-FHD Skin & Extensions (Smart Install)        "
-echo "------------------------------------------------------------------------"
+# ==============================================================================
+# تعريف الألوان
+# ==============================================================================
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+MAGENTA='\033[1;35m'
+NC='\033[0m' # بدون لون
+
+# ==============================================================================
+# دوال الطباعة الجمالية (Functions)
+# ==============================================================================
+print_info() { echo -e "${BLUE}[ INFO ]${NC} $1"; }
+print_success() { echo -e "${GREEN}[ SUCCESS ]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
+print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
+print_divider() { echo -e "${CYAN}========================================================================${NC}"; }
+
+# دالة لتثبيت الإضافات (تم إضافة --force-reinstall بناءً على تعديلك الأخير)
+install_extension() {
+    local ext_name=$1
+    local ext_url=$2
+    local ext_file="/tmp/${ext_name}.ipk"
+
+    print_info "Downloading ${ext_name} for Python ${PYTHON_VERSION}..."
+    curl -s -k -L "${ext_url}" -o "${ext_file}"
+    
+    if grep -q "Not Found" "${ext_file}" || [ ! -s "${ext_file}" ]; then
+        print_warning "${ext_name} IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
+        rm -f "${ext_file}"
+    else
+        print_info "Installing ${ext_name}..."
+        opkg install --force-reinstall --force-overwrite "${ext_file}" > /dev/null 2>&1
+        rm -f "${ext_file}"
+        print_success "${ext_name} Installed Successfully."
+    fi
+    echo ""
+}
+
+# ==============================================================================
+# بداية التثبيت
+# ==============================================================================
+clear
+print_divider
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
+echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
+print_divider
+echo ""
 
 # 1. تنظيف الإصدارات القديمة من الإسكين
-echo "Removing the previous version of Fury-FHD... "
-sleep 2;
+print_info "Removing the previous version of Fury-FHD..."
+sleep 1
 if [ -d /usr/share/enigma2/Fury-FHD ] ; then
     opkg remove enigma2-plugin-skins-fury-fhd > /dev/null 2>&1
     rm -rf /usr/share/enigma2/Fury-FHD > /dev/null 2>&1
-    echo 'Skin package removed.'
+    print_success "Skin package removed."
 else
-    echo "There are no previous versions of Fury-FHD."
+    print_info "There are no previous versions of Fury-FHD."
 fi
 echo ""
 
 # 2. التأكد من وجود curl
-echo "Checking and installing curl if not already installed..."
+print_info "Checking and installing curl if not already installed..."
 opkg install curl > /dev/null 2>&1
-sleep 2
+print_success "Dependencies ready."
+echo ""
 
 # 3. التعرف على إصدار البايثون في الصورة
-echo "Detecting Python version..."
+print_info "Detecting Python version..."
 PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
 
 if [ -z "$PYTHON_VERSION" ]; then
@@ -32,82 +80,40 @@ if [ -z "$PYTHON_VERSION" ]; then
 fi
 
 if [ -z "$PYTHON_VERSION" ]; then
-    echo "⚠️ Warning: Python version could not be detected. Plugins might not install correctly."
+    print_warning "Python version could not be detected. Plugins might not install correctly."
 else
-    echo "✅ Detected Python Version: $PYTHON_VERSION"
+    print_success "Detected Python Version: ${YELLOW}${PYTHON_VERSION}${NC}"
 fi
 echo ""
 
-cd /tmp
+cd /tmp || exit
 
 # 4. تحميل وتثبيت الإسكين الأساسي
-echo "Downloading Fury-FHD skin package..."
+print_info "Downloading Fury-FHD skin package..."
 curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/fury.ipk
 
 if [ -f /tmp/fury.ipk ]; then
-    echo "Installing Fury-FHD Skin..."
-    opkg install --force-reinstall --force-overwrite /tmp/fury.ipk
+    print_info "Installing Fury-FHD Skin..."
+    opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > /dev/null 2>&1
     rm -f /tmp/fury.ipk
+    print_success "Fury-FHD Skin Installed Successfully."
 else
-    echo "❌ Error downloading Fury-FHD"
+    print_error "Error downloading Fury-FHD"
 fi
-sleep 1
 echo ""
 
-# 5. تحميل وتثبيت DataMonitor
+# 5. تحميل وتثبيت الإضافات
 if [ -n "$PYTHON_VERSION" ]; then
-    echo "Downloading DataMonitor for Python ${PYTHON_VERSION}..."
-    curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/DataMonitor/datamonitor_py${PYTHON_VERSION}.ipk" -o /tmp/datamonitor.ipk
-    
-    if grep -q "Not Found" /tmp/datamonitor.ipk || [ ! -s /tmp/datamonitor.ipk ]; then
-        echo "⚠️ DataMonitor IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
-        rm -f /tmp/datamonitor.ipk
-    else
-        echo "Installing DataMonitor..."
-        opkg install --force-reinstall --force-overwrite /tmp/datamonitor.ipk
-        rm -f /tmp/datamonitor.ipk
-    fi
+    install_extension "DataMonitor" "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/DataMonitor/datamonitor_py${PYTHON_VERSION}.ipk"
+    install_extension "FuryDisk" "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/FuryDisk/furydisk_py${PYTHON_VERSION}.ipk"
+    install_extension "AIFury" "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/AIFury/aifury_py${PYTHON_VERSION}.ipk"
 fi
-sleep 1
-echo ""
 
-# 6. تحميل وتثبيت FuryDisk
-if [ -n "$PYTHON_VERSION" ]; then
-    echo "Downloading FuryDisk for Python ${PYTHON_VERSION}..."
-    curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/FuryDisk/furydisk_py${PYTHON_VERSION}.ipk" -o /tmp/furydisk.ipk
-    
-    if grep -q "Not Found" /tmp/furydisk.ipk || [ ! -s /tmp/furydisk.ipk ]; then
-        echo "⚠️ FuryDisk IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
-        rm -f /tmp/furydisk.ipk
-    else
-        echo "Installing FuryDisk..."
-        opkg install --force-reinstall --force-overwrite /tmp/furydisk.ipk
-        rm -f /tmp/furydisk.ipk
-    fi
-fi
-sleep 1
-echo ""
-
-# 7. تحميل وتثبيت AIFury
-if [ -n "$PYTHON_VERSION" ]; then
-    echo "Downloading AIFury for Python ${PYTHON_VERSION}..."
-    curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/AIFury/aifury_py${PYTHON_VERSION}.ipk" -o /tmp/aifury.ipk
-    
-    if grep -q "Not Found" /tmp/aifury.ipk || [ ! -s /tmp/aifury.ipk ]; then
-        echo "⚠️ AIFury IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
-        rm -f /tmp/aifury.ipk
-    else
-        echo "Installing AIFury..."
-        opkg install --force-reinstall --force-overwrite /tmp/aifury.ipk
-        rm -f /tmp/aifury.ipk
-    fi
-fi
-sleep 1
-echo ""
-
-echo "------------------------------------------------------------------------"
-echo "                              Abou Yassin                               "
-echo "         Fury-FHD & Extensions Installed/Updated Successfully           "
-echo "------------------------------------------------------------------------"
-echo "   "
+# ==============================================================================
+# نهاية التثبيت
+# ==============================================================================
+print_divider
+echo -e "${GREEN}             🎉 Fury-FHD & Extensions Installed/Updated Successfully! 🎉 ${NC}"
+echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
+print_divider
 exit 0
