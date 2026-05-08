@@ -74,18 +74,24 @@ echo ""
 # 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
 print_info "Detecting System Information..."
 
-# استخراج اسم الجهاز الحقيقي (دعم Octagon والأجهزة الحديثة)
-if [ -f /proc/stb/info/boxtype ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/boxtype)
-elif [ -f /proc/stb/info/hwmodel ]; then
+# استخراج اسم الجهاز الحقيقي (الأولوية لـ hwmodel لتخطي وهم dm8000)
+if [ -f /proc/stb/info/hwmodel ]; then
     DEVICE_NAME=$(cat /proc/stb/info/hwmodel)
 elif [ -f /proc/stb/info/vumodel ]; then
     DEVICE_NAME=$(cat /proc/stb/info/vumodel)
+elif [ -f /proc/stb/info/boxtype ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/boxtype)
 elif [ -f /proc/stb/info/model ]; then
     DEVICE_NAME=$(cat /proc/stb/info/model)
 else
     DEVICE_NAME="Unknown"
 fi
+
+# فخ أخير: لو لسه مصر إنه dm8000، هنسحب الاسم من الهوست نيم بتاع الجهاز
+if [ "$DEVICE_NAME" = "dm8000" ] && [ -f /etc/hostname ]; then
+    DEVICE_NAME=$(cat /etc/hostname)
+fi
+
 print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
 # استخراج اسم الصورة الفعلي
