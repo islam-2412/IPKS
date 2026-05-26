@@ -1,4 +1,15 @@
 #!/bin/sh
+
+# ==============================================================================
+NEW_VER=$(wget -qO- "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/furyversion.txt" | tr -d '\0\r\n' | awk '{$1=$1};1')
+
+if [ -z "$NEW_VER" ]; then
+    NEW_VER="Latest"
+fi
+# ==============================================================================
+
+echo "==================================="
+echo "   Installing Fury-FHD (v$NEW_VER) "
 echo "==================================="
 
 # ---- Device Model ----
@@ -14,131 +25,50 @@ else
     PYVER="Python: Not installed"
 fi
 echo "Version: $PYVER"
-
-sleep 1
 echo "==================================="
 
 SKINDIR='/usr/share/enigma2/Fury-FHD'
-TMPDIR='/tmp'
-BOXMODEL=$(cat /etc/hostname)
+MAINDIR="$SKINDIR/main"
+LOGODIR="$SKINDIR/image_logo"
 set +e
 
-# ==============================================================================
-# Auto Detect Image
-# ==============================================================================
-echo "Detecting System Image..."
+echo "Detecting System Image & Adjusting Logos..."
 
-if [ -f /etc/issue ]; then
-    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | tr -d '\0\r\n' | awk '{print $1}')
-else
-    IMAGE_NAME="Unknown"
+# 1. تحديد فولدر اللوجو المناسب بناءً على الصورة
+IMG_FOLDER="main" # القيمة الافتراضية لو الصورة مش مدعومة
+
+if grep -qs -i "openATV" /etc/image-version; then IMG_FOLDER="openatv"
+elif grep -qs -i "egami" /etc/image-version; then IMG_FOLDER="egami"
+elif grep -qs -i "PURE2" /etc/image-version; then IMG_FOLDER="pure2"
+elif grep -qs -i "OpenSPA" /etc/image-version; then IMG_FOLDER="openspa"
+elif grep -qs -i "openBH" /etc/image-version; then IMG_FOLDER="openbh"
+elif grep -qs -i "openViX" /etc/image-version; then IMG_FOLDER="openvix"
+elif grep -qs -i "openDroid" /etc/image-version; then IMG_FOLDER="opendroid"
+elif grep -qs -i "openpli" /etc/issue; then
+    if grep -qs -i "GCC-15.1" /etc/issue; then IMG_FOLDER="foxbob"
+    else IMG_FOLDER="openpli"
+    fi
+elif grep -qs -i "Corvoboys" /etc/issue; then IMG_FOLDER="corvoboys"
+elif grep -qs -i "TNAP" /etc/issue; then IMG_FOLDER="tnap"
+elif grep -qs -i "teamblue" /etc/issue; then IMG_FOLDER="teamblue"
+elif grep -qs -i "foxbob" /etc/issue; then IMG_FOLDER="openplifoxbob"
 fi
 
-echo ">> Detected Image: $IMAGE_NAME"
-echo ">> Adjusting files for your image..."
-sleep 2
+echo ">> Applied Image Profile: $IMG_FOLDER"
 
-# ==============================================================================
-# Apply Image Logos
-# ==============================================================================
-if grep -qs -i "openATV" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/openatv/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openatv/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "egami" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/egami/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/egami/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-	
-elif grep -qs -i "PURE2" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/pure2/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/pure2/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "OpenSPA" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/openspa/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openspa/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "openBH" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/openbh/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openbh/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "openViX" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/openvix/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openvix/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-	
-elif grep -qs -i "openDroid" /etc/image-version; then
-    mv -f "$SKINDIR/image_logo/opendroid/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/opendroid/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "openpli" /etc/issue; then
-    if grep -qs -i "GCC-15.1" /etc/issue; then
-        mv -f "$SKINDIR/image_logo/foxbob/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-        mv -f "$SKINDIR/image_logo/foxbob/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    else
-        mv -f "$SKINDIR/image_logo/openpli/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-        mv -f "$SKINDIR/image_logo/openpli/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    fi
-	
-elif grep -qs -i "Corvoboys" /etc/issue; then
-    mv -f "$SKINDIR/image_logo/corvoboys/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/corvoboys/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-	
-elif grep -qs -i "TNAP" /etc/issue; then
-    mv -f "$SKINDIR/image_logo/tnap/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/tnap/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-	
-elif grep -qs -i "teamblue" /etc/issue; then
-    mv -f "$SKINDIR/image_logo/teamblue/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/teamblue/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-
-elif grep -qs -i "foxbob" /etc/issue; then
-	mv $SKINDIR/image_logo/openplifoxbob/imagelogo.png $SKINDIR > /dev/null 2>&1
-	mv $SKINDIR/image_logo/openplifoxbob/top_logo.png $SKINDIR > /dev/null 2>&1
-	
+# 2. تطبيق لوجو الصورة (أمر واحد فقط بيشتغل بذكاء)
+if [ "$IMG_FOLDER" != "main" ] && [ -d "$LOGODIR/$IMG_FOLDER" ]; then
+    mv -f "$LOGODIR/$IMG_FOLDER/imagelogo.png" "$SKINDIR/" > /dev/null 2>&1
+    mv -f "$LOGODIR/$IMG_FOLDER/top_logo.png" "$SKINDIR/" > /dev/null 2>&1
 else
-	cp /usr/share/enigma2/Fury-FHD/main/boximage.png $SKINDIR/boximage.png > /dev/null 2>&1
-	cp /usr/share/enigma2/Fury-FHD/main/top_logo.png $SKINDIR/top_logo.png > /dev/null 2>&1
+    cp -f "$MAINDIR/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
+fi
+
+# 3. تطبيق صورة الجهاز (Box Image)
+if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ]; then
+    cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
+else
+    cp -f "$MAINDIR/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
 fi
 
 # ==============================================================================
@@ -146,10 +76,11 @@ fi
 # ==============================================================================
 sleep 1
 echo "removing some temporary files.... " 
-rm -rf $SKINDIR/image_logo  > /dev/null 2>&1
-rm -rf /control  > /dev/null 2>&1
-echo "enigma2-plugin-skins-Fury-fhd was installed successfully "
+rm -rf "$LOGODIR" > /dev/null 2>&1
+rm -rf /control /CONTROL > /dev/null 2>&1
+
+echo "enigma2-plugin-skins-Fury-fhd (v$NEW_VER) was installed successfully"
 sleep 1
 echo ">>>>>>>>>>>>>>>>>>>DONE<<<<<<<<<<<<<<<<<<<<<"
-echo ">>>>>>>>>>Fury-FHD Skin by Islam Salama (( 2025 ))<<<<<<<<<<"
+echo ">>>>>>>>>>Fury-FHD Skin by Islam Salama (( 2026 ))<<<<<<<<<<"
 exit 0
