@@ -13,8 +13,12 @@ CYAN='\033[1;36m'
 MAGENTA='\033[1;35m'
 NC='\033[0m' # بدون لون
 
-# إصدار الإسكين
-SKIN_VERSION="2026"
+# روابط ملفات الإسكين على GitHub
+VERSION_FILE_URL="https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/furyversion.txt"
+DEFAULT_SKIN_URL="https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk"
+SKIN_URL="$DEFAULT_SKIN_URL"
+SKIN_VERSION=""
+VERSION_LABEL=""
 
 # ==============================================================================
 # دوال الطباعة الجمالية (Functions)
@@ -30,7 +34,7 @@ print_divider() { echo -e "${CYAN}==============================================
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}          ✨ Installing Fury-FHD Skin v${SKIN_VERSION} (Smart Install) ✨    ${NC}"
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin (Smart Install) ✨    ${NC}"
 echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
@@ -53,7 +57,33 @@ opkg install curl > /dev/null 2>&1
 print_success "Dependencies ready."
 echo ""
 
-# 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
+# 3. قراءة إصدار الإسكين المتاح على GitHub من ملف furyversion.txt
+print_info "Checking available Fury-FHD version on GitHub..."
+VERSION_DATA=$(curl -s -k -L "$VERSION_FILE_URL" | tr -d '\r' | sed -n '1p')
+
+if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
+    # تنسيق الملف المتوقع: 7.2# أو 7.2#رابط_الحزمة
+    SKIN_VERSION=$(echo "$VERSION_DATA" | cut -d'#' -f1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    VERSION_SKIN_URL=$(echo "$VERSION_DATA" | cut -s -d'#' -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+    if [ -n "$VERSION_SKIN_URL" ]; then
+        SKIN_URL="$VERSION_SKIN_URL"
+    fi
+
+    if [ -n "$SKIN_VERSION" ]; then
+        VERSION_LABEL=" v${SKIN_VERSION}"
+        print_success "Available Fury-FHD Version on GitHub: ${YELLOW}${SKIN_VERSION}${NC}"
+    else
+        VERSION_LABEL=""
+        print_warning "furyversion.txt was found, but the version value is empty."
+    fi
+else
+    VERSION_LABEL=""
+    print_warning "Could not read furyversion.txt from GitHub. Installing with default package link."
+fi
+echo ""
+
+# 4. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
 print_info "Detecting System Information..."
 
 # استخراج اسم الجهاز بشكل أدق
@@ -116,17 +146,18 @@ echo ""
 
 cd /tmp || exit
 
-# 4. تحميل وتثبيت الإسكين الأساسي
-print_info "Downloading Fury-FHD skin package v${SKIN_VERSION}..."
-curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/fury.ipk
+# 5. تحميل وتثبيت الإسكين الأساسي
+print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from GitHub..."
+curl -s -k -L "${SKIN_URL}" -o /tmp/fury.ipk
 
-if [ -f /tmp/fury.ipk ]; then
-    print_info "Installing Fury-FHD Skin v${SKIN_VERSION}..."
+if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
+    print_info "Installing Fury-FHD Skin${VERSION_LABEL}..."
     opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > /dev/null 2>&1
     rm -f /tmp/fury.ipk
-    print_success "Fury-FHD Skin v${SKIN_VERSION} Installed Successfully."
+    print_success "Fury-FHD Skin${VERSION_LABEL} Installed Successfully."
 else
-    print_error "Error downloading Fury-FHD"
+    rm -f /tmp/fury.ipk
+    print_error "Error downloading Fury-FHD from GitHub."
 fi
 echo ""
 
@@ -134,7 +165,7 @@ echo ""
 # نهاية التثبيت
 # ==============================================================================
 print_divider
-echo -e "${GREEN}              Fury-FHD v${SKIN_VERSION} Installed Successfully!  ${NC}"
+echo -e "${GREEN}             ✅ Fury-FHD${VERSION_LABEL} Installed/Updated Successfully! ✅ ${NC}"
 echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
 print_divider
 exit 0
