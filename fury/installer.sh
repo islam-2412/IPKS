@@ -13,6 +13,9 @@ CYAN='\033[1;36m'
 MAGENTA='\033[1;35m'
 NC='\033[0m' # بدون لون
 
+# إصدار الإسكين
+SKIN_VERSION="2026"
+
 # ==============================================================================
 # دوال الطباعة الجمالية (Functions)
 # ==============================================================================
@@ -22,33 +25,12 @@ print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
 print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
 print_divider() { echo -e "${CYAN}========================================================================${NC}"; }
 
-# دالة لتثبيت الإضافات
-install_extension() {
-    local ext_name=$1
-    local ext_url=$2
-    local ext_file="/tmp/${ext_name}.ipk"
-
-    print_info "Downloading ${ext_name} for Python ${PYTHON_VERSION}..."
-    curl -s -k -L "${ext_url}" -o "${ext_file}"
-    
-    if grep -q "Not Found" "${ext_file}" || [ ! -s "${ext_file}" ]; then
-        print_warning "${ext_name} IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
-        rm -f "${ext_file}"
-    else
-        print_info "Installing ${ext_name}..."
-        opkg install --force-reinstall --force-overwrite "${ext_file}" > /dev/null 2>&1
-        rm -f "${ext_file}"
-        print_success "${ext_name} Installed Successfully."
-    fi
-    echo ""
-}
-
 # ==============================================================================
 # بداية التثبيت
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin v${SKIN_VERSION} (Smart Install) ✨    ${NC}"
 echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
@@ -74,14 +56,40 @@ echo ""
 # 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
 print_info "Detecting System Information..."
 
-# استخراج اسم الجهاز
-if [ -f /proc/stb/info/model ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/model)
-elif [ -f /proc/stb/info/vumodel ]; then
-    DEVICE_NAME=$(cat /proc/stb/info/vumodel)
-else
-    DEVICE_NAME="Unknown"
-fi
+# استخراج اسم الجهاز بشكل أدق
+# بعض الصور تعرض /proc/stb/info/model بشكل غير صحيح مثل dm8000،
+# لذلك يتم فحص أكثر من مصدر وترجيح sf8008 عند ظهوره في أي مصدر.
+RAW_DEVICE_INFO=""
+for DEVICE_FILE in /proc/stb/info/boxtype /proc/stb/info/machinebuild /proc/stb/info/model /proc/stb/info/vumodel /proc/stb/info/oem /etc/hostname; do
+    if [ -f "$DEVICE_FILE" ]; then
+        RAW_DEVICE_INFO="$RAW_DEVICE_INFO $(cat "$DEVICE_FILE" 2>/dev/null)"
+    fi
+done
+RAW_DEVICE_INFO="$RAW_DEVICE_INFO $(hostname 2>/dev/null)"
+NORMALIZED_DEVICE_INFO=$(echo "$RAW_DEVICE_INFO" | tr '[:upper:]' '[:lower:]')
+
+case "$NORMALIZED_DEVICE_INFO" in
+    *sf8008mini*)
+        DEVICE_NAME="Octagon SF8008 Mini"
+        ;;
+    *sf8008m*)
+        DEVICE_NAME="Octagon SF8008M"
+        ;;
+    *sf8008*)
+        DEVICE_NAME="Octagon SF8008"
+        ;;
+    *)
+        if [ -f /proc/stb/info/boxtype ]; then
+            DEVICE_NAME=$(cat /proc/stb/info/boxtype 2>/dev/null)
+        elif [ -f /proc/stb/info/model ]; then
+            DEVICE_NAME=$(cat /proc/stb/info/model 2>/dev/null)
+        elif [ -f /proc/stb/info/vumodel ]; then
+            DEVICE_NAME=$(cat /proc/stb/info/vumodel 2>/dev/null)
+        else
+            DEVICE_NAME="Unknown"
+        fi
+        ;;
+esac
 print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
 
 # استخراج اسم الصورة الفعلي (تجاهل كلمة Welcome)
@@ -109,14 +117,14 @@ echo ""
 cd /tmp || exit
 
 # 4. تحميل وتثبيت الإسكين الأساسي
-print_info "Downloading Fury-FHD skin package..."
+print_info "Downloading Fury-FHD skin package v${SKIN_VERSION}..."
 curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/fury.ipk
 
 if [ -f /tmp/fury.ipk ]; then
-    print_info "Installing Fury-FHD Skin..."
+    print_info "Installing Fury-FHD Skin v${SKIN_VERSION}..."
     opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > /dev/null 2>&1
     rm -f /tmp/fury.ipk
-    print_success "Fury-FHD Skin Installed Successfully."
+    print_success "Fury-FHD Skin v${SKIN_VERSION} Installed Successfully."
 else
     print_error "Error downloading Fury-FHD"
 fi
@@ -126,7 +134,7 @@ echo ""
 # نهاية التثبيت
 # ==============================================================================
 print_divider
-echo -e "${GREEN}                Fury-FHD Installed Successfully! 2025  ${NC}"
+echo -e "${GREEN}              Fury-FHD v${SKIN_VERSION} Installed Successfully!  ${NC}"
 echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
 print_divider
 exit 0
