@@ -1,169 +1,132 @@
 #!/bin/sh
-echo "==================================="
+#
+# Command: wget -q "--no-check-certificate" https://raw.githubusercontent.com/islam-2412/IPKS/refs/heads/main/fury/installer.sh -O - | /bin/sh
 
-# ---- Device Model ----
-BOXMODEL=$(cat /etc/hostname 2>/dev/null || echo "unknown")
-printf "Device Model : %s\033\n" "$BOXMODEL"
+# ==============================================================================
+# تعريف الألوان
+# ==============================================================================
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+MAGENTA='\033[1;35m'
+NC='\033[0m' # بدون لون
 
-# ---- Python Version Check ----
-if command -v python3 >/dev/null 2>&1; then
-    PYVER=$(python3 --version 2>&1)
-elif command -v python >/dev/null 2>&1; then
-    PYVER=$(python --version 2>&1)
-else
-    PYVER="Python: Not installed"
-fi
-echo "Version: $PYVER"
+# ==============================================================================
+# دوال الطباعة الجمالية (Functions)
+# ==============================================================================
+print_info() { echo -e "${BLUE}[ INFO ]${NC} $1"; }
+print_success() { echo -e "${GREEN}[ SUCCESS ]${NC} $1"; }
+print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
+print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
+print_divider() { echo -e "${CYAN}========================================================================${NC}"; }
 
+# دالة لتثبيت الإضافات
+install_extension() {
+    local ext_name=$1
+    local ext_url=$2
+    local ext_file="/tmp/${ext_name}.ipk"
+
+    print_info "Downloading ${ext_name} for Python ${PYTHON_VERSION}..."
+    curl -s -k -L "${ext_url}" -o "${ext_file}"
+    
+    if grep -q "Not Found" "${ext_file}" || [ ! -s "${ext_file}" ]; then
+        print_warning "${ext_name} IPK not found for Python ${PYTHON_VERSION} on GitHub. Skipping..."
+        rm -f "${ext_file}"
+    else
+        print_info "Installing ${ext_name}..."
+        opkg install --force-reinstall --force-overwrite "${ext_file}" > /dev/null 2>&1
+        rm -f "${ext_file}"
+        print_success "${ext_name} Installed Successfully."
+    fi
+    echo ""
+}
+
+# ==============================================================================
+# بداية التثبيت
+# ==============================================================================
+clear
+print_divider
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin & Extensions (Smart Install) ✨    ${NC}"
+echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
+print_divider
+echo ""
+
+# 1. تنظيف الإصدارات القديمة من الإسكين
+print_info "Removing the previous version of Fury-FHD..."
 sleep 1
-echo "==================================="
-
-SKINDIR='/usr/share/enigma2/Fury-FHD'
-TMPDIR='/tmp'
-BOXMODEL=$(cat /etc/hostname)
-set +e
-
-echo " Images Support"
-echo "1 OpenATV All Version"
-echo "2 Egami All Version"
-echo "3 PurE2 Version"
-echo "4 OpenSPA Version"
-echo "5 OpenBH 5.4 & 5.5.1"
-echo "6 OpenViX 6.7"
-echo "7 OpenDroid 7.5 & 8.0"
-echo "8 OpenPli Foxbob"
-echo "9 OpenPLi 9.0 & OpenPLi 9.1"
-echo "10 OpenPLi Develop builds & OpenPLi Scarthgap builds"
-echo "11 Corvoboys"
-echo "12 TNAP"
-echo "13 TeamBlue"
-sleep 2
-echo "Identify your image ...."
-sleep 2
-
-if grep -qs -i "openATV" /etc/image-version; then
-    echo "You have OpenAtv image"
-    mv -f "$SKINDIR/image_logo/openatv/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openatv/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "egami" /etc/image-version; then
-    echo "You have Egami image"
-    mv -f "$SKINDIR/image_logo/egami/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/egami/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-	
-elif grep -qs -i "PURE2" /etc/image-version; then
-    echo "You have PURE2 image"
-    mv -f "$SKINDIR/image_logo/pure2/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/pure2/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "OpenSPA" /etc/image-version; then
-    echo "You have OpenSPA image"
-    mv -f "$SKINDIR/image_logo/openspa/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openspa/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "openBH" /etc/image-version; then
-    echo "You have OpenBH image"
-    mv -f "$SKINDIR/image_logo/openbh/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openbh/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "openViX" /etc/image-version; then
-    echo "You have OpenViX image"
-    mv -f "$SKINDIR/image_logo/openvix/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/openvix/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-	
-elif grep -qs -i "openDroid" /etc/image-version; then
-    echo "You have OpenDroid image"
-    mv -f "$SKINDIR/image_logo/opendroid/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/opendroid/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    if [ -f "/usr/share/enigma2/${BOXMODEL}.png" ] ; then
-        cp -f "/usr/share/enigma2/${BOXMODEL}.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-    else
-        cp -f "/usr/share/enigma2/Fury-FHD/main/boximage.png" "$SKINDIR/boximage.png" > /dev/null 2>&1
-        cp -f "/usr/share/enigma2/Fury-FHD/main/top_logo.png" "$SKINDIR/top_logo.png" > /dev/null 2>&1
-    fi
-
-elif grep -qs -i "openpli" /etc/issue; then
-    if grep -qs -i "GCC-15.1" /etc/issue; then
-        echo "You have Foxbob GCC-15.1 image"
-        mv -f "$SKINDIR/image_logo/foxbob/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-        mv -f "$SKINDIR/image_logo/foxbob/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    else
-        echo "You have OpenPli image"
-        mv -f "$SKINDIR/image_logo/openpli/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-        mv -f "$SKINDIR/image_logo/openpli/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-    fi
-	
-elif grep -qs -i "Corvoboys" /etc/issue; then
-    echo "You have Corvoboys image"
-    mv -f "$SKINDIR/image_logo/corvoboys/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/corvoboys/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-	
-elif grep -qs -i "TNAP" /etc/issue; then
-    echo "You have TNAP image"
-    mv -f "$SKINDIR/image_logo/tnap/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/tnap/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-	
-elif grep -qs -i "teamblue" /etc/issue; then
-    echo "You have teamblue image"
-    mv -f "$SKINDIR/image_logo/teamblue/imagelogo.png" "$SKINDIR" > /dev/null 2>&1
-    mv -f "$SKINDIR/image_logo/teamblue/top_logo.png" "$SKINDIR" > /dev/null 2>&1
-
-elif grep -qs -i "foxbob" /etc/issue; then
-    echo "You have OpenPli foxbob image"
-	mv $SKINDIR/image_logo/openplifoxbob/imagelogo.png $SKINDIR > /dev/null 2>&1
-	mv $SKINDIR/image_logo/openplifoxbob/top_logo.png $SKINDIR > /dev/null 2>&1
-	
+if [ -d /usr/share/enigma2/Fury-FHD ] ; then
+    opkg remove enigma2-plugin-skins-fury-fhd > /dev/null 2>&1
+    rm -rf /usr/share/enigma2/Fury-FHD > /dev/null 2>&1
+    print_success "Skin package removed."
 else
-    echo "Even you do not have a supported image, you can try Fury-FHD"
-	cp /usr/share/enigma2/Fury-FHD/main/boximage.png $SKINDIR/boximage.png > /dev/null 2>&1
-	cp /usr/share/enigma2/Fury-FHD/main/top_logo.png $SKINDIR/top_logo.png > /dev/null 2>&1
+    print_info "There are no previous versions of Fury-FHD."
+fi
+echo ""
+
+# 2. التأكد من وجود curl
+print_info "Checking and installing curl if not already installed..."
+opkg install curl > /dev/null 2>&1
+print_success "Dependencies ready."
+echo ""
+
+# 3. التعرف على بيانات النظام (الجهاز، الصورة، إصدار البايثون)
+print_info "Detecting System Information..."
+
+# استخراج اسم الجهاز
+if [ -f /proc/stb/info/model ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/model)
+elif [ -f /proc/stb/info/vumodel ]; then
+    DEVICE_NAME=$(cat /proc/stb/info/vumodel)
+else
+    DEVICE_NAME="Unknown"
+fi
+print_success "Detected Device: ${YELLOW}${DEVICE_NAME}${NC}"
+
+# استخراج اسم الصورة الفعلي (تجاهل كلمة Welcome)
+if [ -f /etc/issue ]; then
+    IMAGE_NAME=$(sed -n '1p' /etc/issue | sed -e 's/[Ww]elcome to //g' -e 's/\\n//g' -e 's/\\l//g' | awk '{print $1}')
+else
+    IMAGE_NAME="Unknown"
+fi
+print_success "Detected Image: ${YELLOW}${IMAGE_NAME}${NC}"
+
+# التعرف على إصدار البايثون بنفس الطريقة الموثوقة
+PYTHON_VERSION=$(python3 -c 'import sys; print("{}.{}".format(sys.version_info.major, sys.version_info.minor))' 2>/dev/null)
+
+if [ -z "$PYTHON_VERSION" ]; then
+    PYTHON_VERSION=$(python -c 'import sys; print(str(sys.version_info[0]) + "." + str(sys.version_info[1]))' 2>/dev/null)
 fi
 
+if [ -z "$PYTHON_VERSION" ]; then
+    print_warning "Python version could not be detected. Plugins might not install correctly."
+else
+    print_success "Detected Python Version: ${YELLOW}${PYTHON_VERSION}${NC}"
+fi
+echo ""
+
+cd /tmp || exit
+
+# 4. تحميل وتثبيت الإسكين الأساسي
+print_info "Downloading Fury-FHD skin package..."
+curl -s -k -L "https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk" -o /tmp/fury.ipk
+
+if [ -f /tmp/fury.ipk ]; then
+    print_info "Installing Fury-FHD Skin..."
+    opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > /dev/null 2>&1
+    rm -f /tmp/fury.ipk
+    print_success "Fury-FHD Skin Installed Successfully."
+else
+    print_error "Error downloading Fury-FHD"
+fi
+echo ""
+
 # ==============================================================================
-# Clean Up & Finish
+# نهاية التثبيت
 # ==============================================================================
-sleep 2
-echo "removing some temporary files.... " 
-rm -rf $SKINDIR/image_logo  > /dev/null 2>&1
-rm -rf /control  > /dev/null 2>&1
-echo "enigma2-plugin-skins-Fury-fhd was installed successfully "
-sleep 2
-echo ">>>>>>>>>>>>>>>>>>>DONE<<<<<<<<<<<<<<<<<<<<<"
-echo ">>>>>>>>>>Fury-FHD Skin by Islam Salama (( 2025 ))<<<<<<<<<<"
+print_divider
+echo -e "${GREEN}                Fury-FHD Installed Successfully! 2025  ${NC}"
+echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
+print_divider
 exit 0
