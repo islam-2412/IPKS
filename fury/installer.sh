@@ -58,7 +58,7 @@ print_success "Dependencies ready."
 echo ""
 
 # 3. قراءة إصدار الإسكين المتاح على GitHub من ملف furyversion.txt
-print_info "Checking available Fury-FHD version on GitHub..."
+print_info "Checking available Fury-FHD version on Server"
 VERSION_DATA=$(curl -s -k -L "$VERSION_FILE_URL" | tr -d '\r' | sed -n '1p')
 
 if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
@@ -166,6 +166,8 @@ echo ""
 # ==============================================================================
 print_divider
 echo -e "${GREEN}             ✅ Fury-FHD${VERSION_LABEL} Installed Successfully! ✅ ${NC}"
+# ==============================================================================
+
 echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
 print_divider
 exit 0
