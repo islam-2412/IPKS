@@ -34,8 +34,8 @@ print_divider() { echo -e "${CYAN}==============================================
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}          ✨ Installing Fury-FHD Skin (Smart Install) ✨    ${NC}"
-echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${GREEN}                       Installing Skin Fury-FHD  2025     ${NC}"
+echo -e "${MAGENTA}                         Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
@@ -165,7 +165,7 @@ echo ""
 # نهاية التثبيت
 # ==============================================================================
 print_divider
-echo -e "${GREEN}             ✅ Fury-FHD${VERSION_LABEL} Installed/Updated Successfully! ✅ ${NC}"
+echo -e "${GREEN}             ✅ Fury-FHD${VERSION_LABEL} Installed Successfully! ✅ ${NC}"
 echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
 print_divider
 exit 0
