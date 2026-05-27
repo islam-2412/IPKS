@@ -58,7 +58,7 @@ print_success "Dependencies ready."
 echo ""
 
 # 3. قراءة إصدار الإسكين المتاح على GitHub من ملف furyversion.txt
-print_info "Checking available Fury-FHD version on Server"
+print_info "Checking available Fury-FHD version on GitHub... "
 VERSION_DATA=$(curl -s -k -L "$VERSION_FILE_URL" | tr -d '\r' | sed -n '1p')
 
 if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
