@@ -58,7 +58,7 @@ print_success "Dependencies ready."
 echo ""
 
 # 3. قراءة إصدار الإسكين المتاح على GitHub من ملف furyversion.txt
-print_info "Checking available Fury-FHD version on GitHub... "
+print_info "Checking available Fury-FHD version on Server... "
 VERSION_DATA=$(curl -s -k -L "$VERSION_FILE_URL" | tr -d '\r' | sed -n '1p')
 
 if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
@@ -72,14 +72,14 @@ if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
 
     if [ -n "$SKIN_VERSION" ]; then
         VERSION_LABEL=" v${SKIN_VERSION}"
-        print_success "Available Fury-FHD Version on GitHub: ${YELLOW}${SKIN_VERSION}${NC}"
+        print_success "Available Fury-FHD Version on Server: ${YELLOW}${SKIN_VERSION}${NC}"
     else
         VERSION_LABEL=""
         print_warning "furyversion.txt was found, but the version value is empty."
     fi
 else
     VERSION_LABEL=""
-    print_warning "Could not read furyversion.txt from GitHub. Installing with default package link."
+    print_warning "Could not read furyversion.txt from Server. Installing with default package link."
 fi
 echo ""
 
@@ -147,7 +147,7 @@ echo ""
 cd /tmp || exit
 
 # 5. تحميل وتثبيت الإسكين الأساسي
-print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from GitHub..."
+print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from Server..."
 curl -s -k -L "${SKIN_URL}" -o /tmp/fury.ipk
 
 if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
@@ -157,7 +157,7 @@ if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
     print_success "Fury-FHD Skin${VERSION_LABEL} Installed Successfully."
 else
     rm -f /tmp/fury.ipk
-    print_error "Error downloading Fury-FHD from GitHub."
+    print_error "Error downloading Fury-FHD from Server."
 fi
 echo ""
 
