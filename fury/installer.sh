@@ -29,13 +29,48 @@ print_warning() { echo -e "${YELLOW}[ WARNING ]${NC} $1"; }
 print_error() { echo -e "${RED}[ ERROR ]${NC} $1"; }
 print_divider() { echo -e "${CYAN}========================================================================${NC}"; }
 
+# دالة تحميل متوافقة مع أغلب الصور، وخصوصا OpenBH التي قد لا تحتوي على curl
+# يتم استخدام curl إن وجد، وإلا wget، وإن لم يوجد أيهما يحاول تثبيت wget ثم يعيد المحاولة.
+download_file() {
+    URL="$1"
+    OUT_FILE="$2"
+
+    rm -f "$OUT_FILE"
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -s -k -L "$URL" -o "$OUT_FILE"
+        return $?
+    fi
+
+    if command -v wget >/dev/null 2>&1; then
+        wget -q --no-check-certificate -O "$OUT_FILE" "$URL"
+        return $?
+    fi
+
+    print_warning "curl/wget not found. Trying to install wget..."
+    opkg update >/dev/null 2>&1
+    opkg install wget >/dev/null 2>&1
+
+    if command -v wget >/dev/null 2>&1; then
+        wget -q --no-check-certificate -O "$OUT_FILE" "$URL"
+        return $?
+    fi
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -s -k -L "$URL" -o "$OUT_FILE"
+        return $?
+    fi
+
+    return 1
+}
+
 # ==============================================================================
 # بداية التثبيت
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}                       Installing Skin Fury-FHD  2025     ${NC}"
-echo -e "${MAGENTA}                         Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${GREEN}          ✨ Installing Fury-FHD Skin (Smart Install) ✨    ${NC}"
+echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
@@ -51,15 +86,29 @@ else
 fi
 echo ""
 
-# 2. التأكد من وجود curl
-print_info "Checking and installing curl if not already installed..."
-opkg install curl > /dev/null 2>&1
-print_success "Dependencies ready."
+# 2. التأكد من وجود أداة تحميل متوافقة
+print_info "Checking download tools..."
+if command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1; then
+    print_success "Download tool is ready."
+else
+    print_warning "No download tool found. Trying to install wget..."
+    opkg update > /dev/null 2>&1
+    opkg install wget > /dev/null 2>&1
+    if command -v wget >/dev/null 2>&1 || command -v curl >/dev/null 2>&1; then
+        print_success "Download tool is ready."
+    else
+        print_error "Could not find curl or wget. The installer cannot continue."
+        exit 1
+    fi
+fi
 echo ""
 
 # 3. قراءة إصدار الإسكين المتاح على GitHub من ملف furyversion.txt
-print_info "Checking available Fury-FHD version on GitHub... "
-VERSION_DATA=$(curl -s -k -L "$VERSION_FILE_URL" | tr -d '\r' | sed -n '1p')
+print_info "Checking available Fury-FHD version on GitHub..."
+VERSION_TMP="/tmp/furyversion.txt"
+download_file "$VERSION_FILE_URL" "$VERSION_TMP"
+VERSION_DATA=$(tr -d '\r' < "$VERSION_TMP" 2>/dev/null | sed -n '1p')
+rm -f "$VERSION_TMP"
 
 if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
     # تنسيق الملف المتوقع: 7.2# أو 7.2#رابط_الحزمة
@@ -90,9 +139,9 @@ print_info "Detecting System Information..."
 # بعض الصور تعرض /proc/stb/info/model بشكل غير صحيح مثل dm8000،
 # لذلك يتم فحص أكثر من مصدر وترجيح sf8008 عند ظهوره في أي مصدر.
 RAW_DEVICE_INFO=""
-for DEVICE_FILE in /proc/stb/info/boxtype /proc/stb/info/machinebuild /proc/stb/info/model /proc/stb/info/vumodel /proc/stb/info/oem /etc/hostname; do
+for DEVICE_FILE in     /proc/stb/info/boxtype     /proc/stb/info/boxmodel     /proc/stb/info/machinebuild     /proc/stb/info/model     /proc/stb/info/vumodel     /proc/stb/info/displaymodel     /proc/stb/info/oem     /proc/device-tree/model     /etc/hostname     /etc/model     /etc/boxmodel; do
     if [ -f "$DEVICE_FILE" ]; then
-        RAW_DEVICE_INFO="$RAW_DEVICE_INFO $(cat "$DEVICE_FILE" 2>/dev/null)"
+        RAW_DEVICE_INFO="$RAW_DEVICE_INFO $(cat "$DEVICE_FILE" 2>/dev/null | tr '\000' ' ')"
     fi
 done
 RAW_DEVICE_INFO="$RAW_DEVICE_INFO $(hostname 2>/dev/null)"
@@ -148,16 +197,28 @@ cd /tmp || exit
 
 # 5. تحميل وتثبيت الإسكين الأساسي
 print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from GitHub..."
-curl -s -k -L "${SKIN_URL}" -o /tmp/fury.ipk
+download_file "${SKIN_URL}" /tmp/fury.ipk
 
 if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
     print_info "Installing Fury-FHD Skin${VERSION_LABEL}..."
-    opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > /dev/null 2>&1
+    INSTALL_LOG="/tmp/fury_install.log"
+    opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > "$INSTALL_LOG" 2>&1
+    INSTALL_STATUS=$?
     rm -f /tmp/fury.ipk
-    print_success "Fury-FHD Skin${VERSION_LABEL} Installed Successfully."
+
+    if [ "$INSTALL_STATUS" = "0" ]; then
+        print_success "Fury-FHD Skin${VERSION_LABEL} Installed Successfully."
+        rm -f "$INSTALL_LOG"
+    else
+        print_error "Fury-FHD installation failed. Showing opkg error:"
+        cat "$INSTALL_LOG"
+        print_error "Log saved at: $INSTALL_LOG"
+        exit 1
+    fi
 else
     rm -f /tmp/fury.ipk
     print_error "Error downloading Fury-FHD from GitHub."
+    exit 1
 fi
 echo ""
 
@@ -165,9 +226,7 @@ echo ""
 # نهاية التثبيت
 # ==============================================================================
 print_divider
-echo -e "${GREEN}             ✅ Fury-FHD${VERSION_LABEL} Installed Successfully! ✅ ${NC}"
-# ==============================================================================
-
+echo -e "${GREEN}             🎉 Fury-FHD${VERSION_LABEL} Installed/Updated Successfully! 🎉 ${NC}"
 echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
 print_divider
 exit 0
