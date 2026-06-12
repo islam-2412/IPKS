@@ -64,6 +64,14 @@ download_file() {
     return 1
 }
 
+# محاولة تثبيت إضافة Bitrate لو كانت متاحة في Feed الصورة.
+# لو غير متاحة في OpenBH يتم تجاهلها بصمت، ثم يتم تثبيت الإسكين لاحقا بدون إظهار تحذير.
+install_bitrate_if_available() {
+    opkg install enigma2-plugin-extensions-bitrate >/dev/null 2>&1 && return 0
+    opkg install enigma2-plugin-extensions-bitrateviewer >/dev/null 2>&1 && return 0
+    return 0
+}
+
 # ==============================================================================
 # بداية التثبيت
 # ==============================================================================
@@ -195,6 +203,12 @@ echo ""
 
 cd /tmp || exit
 
+# تجهيز اعتماد Bitrate إن كان متاحا في Feed الصورة، بدون إظهار أي تحذيرات إذا لم يكن متاحا.
+print_info "Checking Bitrate dependency..."
+install_bitrate_if_available
+print_success "Bitrate dependency check completed."
+echo ""
+
 # 5. تحميل وتثبيت الإسكين الأساسي
 print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from GitHub..."
 download_file "${SKIN_URL}" /tmp/fury.ipk
@@ -208,10 +222,9 @@ if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
     # OpenBH fix:
     # بعض صور OpenBH لا توفر الحزمة باسم enigma2-plugin-extensions-bitrate،
     # رغم أن الإسكين يطلبها كاعتماد داخل ملف ipk.
-    # لذلك لو الفشل سببه هذا الاعتماد فقط، يتم إعادة التثبيت مع تجاهل الاعتماد المفقود.
+    # لو الفشل سببه هذا الاعتماد فقط، يتم إعادة التثبيت مع تجاهل الاعتماد المفقود بصمت
+    # حتى لا يظهر تحذير Bitrate أثناء التثبيت.
     if [ "$INSTALL_STATUS" != "0" ] && grep -q "enigma2-plugin-extensions-bitrate" "$INSTALL_LOG" 2>/dev/null; then
-        print_warning "OpenBH is missing dependency: enigma2-plugin-extensions-bitrate"
-        print_warning "Retrying Fury-FHD install with --force-depends for OpenBH compatibility..."
         opkg install --force-reinstall --force-overwrite --force-depends /tmp/fury.ipk > "$INSTALL_LOG" 2>&1
         INSTALL_STATUS=$?
     fi
