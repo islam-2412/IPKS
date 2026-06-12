@@ -204,6 +204,18 @@ if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
     INSTALL_LOG="/tmp/fury_install.log"
     opkg install --force-reinstall --force-overwrite /tmp/fury.ipk > "$INSTALL_LOG" 2>&1
     INSTALL_STATUS=$?
+
+    # OpenBH fix:
+    # بعض صور OpenBH لا توفر الحزمة باسم enigma2-plugin-extensions-bitrate،
+    # رغم أن الإسكين يطلبها كاعتماد داخل ملف ipk.
+    # لذلك لو الفشل سببه هذا الاعتماد فقط، يتم إعادة التثبيت مع تجاهل الاعتماد المفقود.
+    if [ "$INSTALL_STATUS" != "0" ] && grep -q "enigma2-plugin-extensions-bitrate" "$INSTALL_LOG" 2>/dev/null; then
+        print_warning "OpenBH is missing dependency: enigma2-plugin-extensions-bitrate"
+        print_warning "Retrying Fury-FHD install with --force-depends for OpenBH compatibility..."
+        opkg install --force-reinstall --force-overwrite --force-depends /tmp/fury.ipk > "$INSTALL_LOG" 2>&1
+        INSTALL_STATUS=$?
+    fi
+
     rm -f /tmp/fury.ipk
 
     if [ "$INSTALL_STATUS" = "0" ]; then
