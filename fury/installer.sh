@@ -112,7 +112,7 @@ fi
 echo ""
 
 # 3. قراءة إصدار الإسكين المتاح على GitHub من ملف furyversion.txt
-print_info "Checking available Fury-FHD version on GitHub..."
+print_info "Checking available Fury-FHD version on Server..."
 VERSION_TMP="/tmp/furyversion.txt"
 download_file "$VERSION_FILE_URL" "$VERSION_TMP"
 VERSION_DATA=$(tr -d '\r' < "$VERSION_TMP" 2>/dev/null | sed -n '1p')
@@ -210,7 +210,7 @@ print_success "Bitrate dependency check completed."
 echo ""
 
 # 5. تحميل وتثبيت الإسكين الأساسي
-print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from GitHub..."
+print_info "Downloading Fury-FHD skin package${VERSION_LABEL} from Server..."
 download_file "${SKIN_URL}" /tmp/fury.ipk
 
 if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
@@ -242,7 +242,7 @@ if [ -s /tmp/fury.ipk ] && ! grep -q "Not Found" /tmp/fury.ipk 2>/dev/null; then
     fi
 else
     rm -f /tmp/fury.ipk
-    print_error "Error downloading Fury-FHD from GitHub."
+    print_error "Error downloading Fury-FHD from Server."
     exit 1
 fi
 echo ""
