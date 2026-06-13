@@ -129,7 +129,7 @@ if [ -n "$VERSION_DATA" ] && ! echo "$VERSION_DATA" | grep -qi "Not Found"; then
 
     if [ -n "$SKIN_VERSION" ]; then
         VERSION_LABEL=" v${SKIN_VERSION}"
-        print_success "Available Fury-FHD Version on GitHub: ${YELLOW}${SKIN_VERSION}${NC}"
+        print_success "Available Fury-FHD Version on Server: ${YELLOW}${SKIN_VERSION}${NC}"
     else
         VERSION_LABEL=""
         print_warning "furyversion.txt was found, but the version value is empty."
