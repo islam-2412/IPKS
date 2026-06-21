@@ -247,6 +247,37 @@ else
 fi
 echo ""
 
+# 6. تحميل وتثبيت إضافة AIFury فقط بالمعمارية الصحيحة
+if [ -n "$PYTHON_VERSION" ]; then
+    print_info "Detecting Architecture for AIFury Plugin..."
+    SYS_ARCH=$(uname -m)
+    if [ "$SYS_ARCH" = "aarch64" ]; then
+        BASE_ARCH="aarch64"
+    elif echo "$SYS_ARCH" | grep -q "mips"; then
+        BASE_ARCH="mipsel"
+    else
+        BASE_ARCH="arm"
+    fi
+    print_success "Detected Architecture: ${YELLOW}${BASE_ARCH}${NC}"
+
+    AIFURY_URL="https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/AIFury/aifury_py${PYTHON_VERSION}_${BASE_ARCH}.ipk"
+    AIFURY_FILE="/tmp/aifury.ipk"
+
+    print_info "Downloading AIFury for Python ${PYTHON_VERSION} and Arch ${BASE_ARCH}..."
+    download_file "$AIFURY_URL" "$AIFURY_FILE"
+
+    if [ -s "$AIFURY_FILE" ] && ! grep -q "Not Found" "$AIFURY_FILE" 2>/dev/null; then
+        print_info "Installing AIFury..."
+        opkg install --force-reinstall --force-overwrite "$AIFURY_FILE" > /dev/null 2>&1
+        rm -f "$AIFURY_FILE"
+        print_success "AIFury Installed Successfully."
+    else
+        rm -f "$AIFURY_FILE"
+        print_warning "AIFury IPK not found on Server for this architecture/Python version. Skipping..."
+    fi
+    echo ""
+fi
+
 # ==============================================================================
 # نهاية التثبيت
 # ==============================================================================
