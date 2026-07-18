@@ -94,6 +94,13 @@ else
 fi
 echo ""
 
+# حذف ملفات وإضافات Fury القديمة بالكامل قبل تثبيت النسخة الجديدة
+print_info "Removing old AIFury and Fury Data files..."
+rm -rf "/usr/lib/enigma2/python/Plugins/Extensions/AIFury" > /dev/null 2>&1
+rm -rf "/usr/lib/enigma2/python/Plugins/Extensions/Fury Data" > /dev/null 2>&1
+print_success "Old AIFury and Fury Data files removed."
+echo ""
+
 # 2. التأكد من وجود أداة تحميل متوافقة
 print_info "Checking download tools..."
 if command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1; then
