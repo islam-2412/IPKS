@@ -1,1 +1,1 @@
-7.4#https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk
+8.1#https://raw.githubusercontent.com/islam-2412/IPKS/main/fury/fury.ipk
