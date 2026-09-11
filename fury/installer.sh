@@ -78,7 +78,7 @@ install_bitrate_if_available() {
 clear
 print_divider
 echo -e "${GREEN}                      Installing Fury-FHD Skin      ${NC}"
-echo -e "${YELLOW}                    Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${YELLOW}                      Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
