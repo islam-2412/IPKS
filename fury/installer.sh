@@ -77,8 +77,8 @@ install_bitrate_if_available() {
 # ==============================================================================
 clear
 print_divider
-echo -e "${GREEN}          ✨ Installing Fury-FHD Skin (Smart Install) ✨    ${NC}"
-echo -e "${MAGENTA}                 Maintainer: Islam Salama (Abou Yassin)               ${NC}"
+echo -e "${GREEN}                      Installing Fury-FHD Skin      ${NC}"
+echo -e "${YELLOW}                    Islam Salama (Abou Yassin)               ${NC}"
 print_divider
 echo ""
 
@@ -289,7 +289,8 @@ fi
 # نهاية التثبيت
 # ==============================================================================
 print_divider
-echo -e "${GREEN}             🎉 Fury-FHD${VERSION_LABEL} Installed/Updated Successfully! 🎉 ${NC}"
+echo -e "${GREEN}              Fury-FHD${VERSION_LABEL} Installed/Updated Successfully!  ${NC}"
+echo -e "${MAGENTA}                           Long live Egypt.               ${NC}"
 echo -e "${CYAN}             Please restart your Enigma2 GUI to apply changes.          ${NC}"
 print_divider
 exit 0
